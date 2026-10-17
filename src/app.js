@@ -6,6 +6,7 @@ import classMemberRouter from "./routes/classMember.route.js"
 import lessonRouter from "./routes/lesson.route.js";
 import assignmentRouter from "./routes/assignment.route.js";
 import errorHandler from "./middlewares/error.middleware.js";
+import submissionRouter from "./routes/submission.route.js";
 
 const app = express();
 app.use(express.json());
@@ -16,6 +17,7 @@ app.use("/classes", classRouter)
 app.use("/class-members", classMemberRouter);
 app.use("/lessons", lessonRouter);
 app.use("/assignments", assignmentRouter);
+app.use("/submissions", submissionRouter);
 
 app.use(errorHandler);
 
