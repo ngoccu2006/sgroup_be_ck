@@ -1,8 +1,23 @@
 import submissionService from "../services/submission.service.js";
+import { uploadFileToR2 } from "../utils/r2Upload.js";
 
 async function submitAssignment(req, res, next) {
   try {
-    const submission = await submissionService.submitAssignment(req.body, req.user.id);
+    let fileUrl = req.body.file_url || null;
+
+    if (req.file){
+      const uploadResult = await uploadFileToR2(req.file, "submissions");
+      fileUrl = uploadResult.fileUrl;
+    }
+
+    const submissionData = {
+      assignment_id: req.body.assignment_id,
+      content: req.body.content || null,
+      repository_url: req.body.repository_url || null, // Link GitHub
+      file_url: fileUrl,                              // Link File R2
+    };
+
+    const submission = await submissionService.submitAssignment(submissionData, req.user.id);
     res.status(200).json({ message: "Nộp bài tập thành công!", data: submission });
   } catch (error) {
     next(error);

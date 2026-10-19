@@ -2,18 +2,19 @@ import db from "../configs/db.js";
 
 // 1. Member nộp bài hoặc cập nhật bài nộp (Upsert nếu đã tồn tại UNIQUE assignment_id + member_id)
 async function upsert(submissionData) {
-  const { id, assignment_id, member_id, content, repository_url } = submissionData;
+  const { id, assignment_id, member_id, content, repository_url, file_url } = submissionData;
   const query = `
-    INSERT INTO submissions (id, assignment_id, member_id, content, repository_url, submitted_at)
-    VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+    INSERT INTO submissions (id, assignment_id, member_id, content, repository_url, file_url, submitted_at)
+    VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
     ON CONFLICT (assignment_id, member_id) 
     DO UPDATE SET 
       content = EXCLUDED.content,
       repository_url = EXCLUDED.repository_url,
+      file_url = EXCLUDED.file_url,
       submitted_at = CURRENT_TIMESTAMP
     RETURNING *;
   `;
-  const values = [id, assignment_id, member_id, content, repository_url];
+  const values = [id, assignment_id, member_id, content, repository_url, file_url];
   const res = await db.query(query, values);
   return res.rows[0];
 }

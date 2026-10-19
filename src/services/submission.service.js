@@ -3,6 +3,15 @@ import submissionRepository from "../repositories/submission.repository.js";
 import assignmentRepository from "../repositories/assignment.repository.js";
 
 async function submitAssignment(submissionData, currentMemberId) {
+  const { assignment_id, content, repository_url, file_url} = submissionData;
+
+  // kiem tra xem co nop bai thuoc 1 trong 3 hinh thuc tren khong
+  if (!content && !repository_url && !file_url){
+    const error = new Error("Bạn phải nhập nội dung, đính kèm link repository hoặc upload file bài làm!");
+    error.statusCode = 400;
+    throw error;
+  }
+
   // Kiểm tra bài tập có tồn tại không
   const assignment = await assignmentRepository.findById(submissionData.assignment_id);
   if (!assignment) {
