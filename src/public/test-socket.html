@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Socket.io LMS</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #18181b; color: #f4f4f5; }
+    button { padding: 10px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #1d4ed8; }
+    #logs { margin-top: 20px; background: #09090b; padding: 16px; border-radius: 8px; font-family: monospace; border: 1px solid #27272a; white-space: pre-wrap; }
+    .status { color: #22c55e; }
+    .event { color: #eab308; }
+    .error { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <h2>🔔 Test Socket.io Real-time Notification</h2>
+  <button onclick="joinRoom()">1. Join Room (User ID)</button>
+  
+  <div id="logs">Đang kết nối tới Socket Server...</div>
+
+  <script>
+    // Tự động kết nối tới host đang chạy trang này (không lo sai port)
+    const socket = io();
+
+    socket.on("connect", () => {
+      log("<span class='status'>🟢 Kết nối Socket.io thành công! Socket ID: " + socket.id + "</span>");
+    });
+
+    socket.on("connect_error", (err) => {
+      log("<span class='error'>🔴 Kết nối thất bại: " + err.message + "</span>");
+    });
+
+    function joinRoom() {
+      // Thay bằng user_id của Member bạn muốn test nhận thông báo
+      const userId = "27022aa3-b22a-4c2f-8db9-42989197bc7f";
+      socket.emit("join", userId);
+      log("<span class='event'>👤 Đã bắn event 'join' với User ID: " + userId + "</span>");
+    }
+
+    socket.on("new_notification", (data) => {
+      log("<span class='event'>🔔 [NEW NOTIFICATION RECEIVED]:\n" + JSON.stringify(data, null, 2) + "</span>");
+    });
+
+    function log(msg) {
+      document.getElementById("logs").innerHTML += "<br><br>" + msg;
+    }
+  </script>
+</body>
+</html>

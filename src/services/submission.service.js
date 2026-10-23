@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import submissionRepository from "../repositories/submission.repository.js";
 import assignmentRepository from "../repositories/assignment.repository.js";
+import notificationService from "./notification.service.js";
 
 async function submitAssignment(submissionData, currentMemberId) {
   const { assignment_id, content, repository_url, file_url} = submissionData;
@@ -66,7 +67,16 @@ async function gradeSubmission(submissionId, score, feedback) {
     throw error;
   }
 
-  return await submissionRepository.updateGrade(submissionId, score, feedback);
+  const updatedSubmission = await submissionRepository.updateGrade(submissionId, score, feedback);
+
+  // gui thong bao
+  await notificationService.sendNotificationToUser(
+    submission.member_id,
+    "Ket qua cham diem bai tap",
+    `Bai tap "${assignment.title}" cua ban da duoc cham diem: ${score}/${assignment.maximum_score}` 
+  );
+
+  return updatedSubmission;
 }
 
 const submissionService = {

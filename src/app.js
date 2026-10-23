@@ -8,6 +8,7 @@ import assignmentRouter from "./routes/assignment.route.js";
 import errorHandler from "./middlewares/error.middleware.js";
 import submissionRouter from "./routes/submission.route.js";
 import analyticsRouter from "./routes/analytics.route.js";
+import notificationRouter from "./routes/notification.route.js";
 
 const app = express();
 app.use(express.json());
@@ -20,6 +21,10 @@ app.use("/lessons", lessonRouter);
 app.use("/assignments", assignmentRouter);
 app.use("/submissions", submissionRouter);
 app.use("/analytics", analyticsRouter);
+app.use("/notifications", notificationRouter);
+
+// Cho phép truy cập file tĩnh trong thư mục src/public
+app.use(express.static('src/public'));
 
 app.use(errorHandler);
 

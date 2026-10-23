@@ -1,13 +1,23 @@
 import {v4 as uuidv4} from 'uuid';
 import assignmentRepository from '../repositories/assignment.repository.js';
+import notificationService from "./notification.service.js";
 
 async function createAssignment(assignmentData, currentUserId) {
+  const {class_id, title} = assignmentData;
   const newAssignment = {
     id: uuidv4(),
     ...assignmentData,
     created_by: currentUserId,
   };
-  return await assignmentRepository.create(newAssignment);
+  const createdAssignment = await assignmentRepository.create(newAssignment);
+
+  await notificationService.sendNotificationToClassMembers(
+    createAssignment.class_id,
+    "Bai tap moi",
+    `Mentor vua dang bai tap moi: ${createAssignment.title}`
+  );
+
+  return createAssignment;
 }
 
 async function getAssignmentsByClass(classId) {
@@ -33,6 +43,7 @@ async function deleteAssignment(id) {
   await getAssignmentById(id); // Check if assignment exists
   return await assignmentRepository.deleteById(id);
 }
+
 
 const assignmentService = {
   createAssignment,
