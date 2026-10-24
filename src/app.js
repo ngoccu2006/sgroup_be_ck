@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import userRouter from "./routes/user.routes.js";
 import authRouter from "./routes/auth.route.js";
 import classRouter from "./routes/class.route.js";
@@ -12,6 +13,13 @@ import notificationRouter from "./routes/notification.route.js";
 
 const app = express();
 app.use(express.json());
+
+//FE fetch
+
+app.use(cors({
+  origin: process.env.CORS_ORIGIN?.split(",") || "http://localhost:5173",
+  exposedHeaders: ["Content-Disposition"], // Giúp FE đọc được tên file Excel khi tải về
+}));
 
 app.use("/users", userRouter);
 app.use("/auth", authRouter);

@@ -6,6 +6,8 @@
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; background: #18181b; color: #f4f4f5; }
+    .input-group { margin-bottom: 15px; }
+    input[type="text"] { width: 70%; padding: 10px; border-radius: 6px; border: 1px solid #3f3f46; background: #27272a; color: #fff; }
     button { padding: 10px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; }
     button:hover { background: #1d4ed8; }
     #logs { margin-top: 20px; background: #09090b; padding: 16px; border-radius: 8px; font-family: monospace; border: 1px solid #27272a; white-space: pre-wrap; }
@@ -16,32 +18,60 @@
 </head>
 <body>
   <h2>🔔 Test Socket.io Real-time Notification</h2>
-  <button onclick="joinRoom()">1. Join Room (User ID)</button>
   
-  <div id="logs">Đang kết nối tới Socket Server...</div>
+  <div class="input-group">
+    <input type="text" id="jwtToken" placeholder="Dán Bearer JWT Token của User tại đây..." />
+    <button onclick="connectSocket()">Kết nối Socket</button>
+  </div>
+
+  <div id="logs">Hãy nhập JWT Token và nhấn "Kết nối Socket"...</div>
 
   <script>
-    // Tự động kết nối tới host đang chạy trang này (không lo sai port)
-    const socket = io();
+    let socket = null;
 
-    socket.on("connect", () => {
-      log("<span class='status'>🟢 Kết nối Socket.io thành công! Socket ID: " + socket.id + "</span>");
-    });
+    // Tự lấy Token cũ từ localStorage nếu có
+    document.getElementById("jwtToken").value = localStorage.getItem("test_token") || "";
 
-    socket.on("connect_error", (err) => {
-      log("<span class='error'>🔴 Kết nối thất bại: " + err.message + "</span>");
-    });
+    function connectSocket() {
+      const token = document.getElementById("jwtToken").value.trim();
 
-    function joinRoom() {
-      // Thay bằng user_id của Member bạn muốn test nhận thông báo
-      const userId = "27022aa3-b22a-4c2f-8db9-42989197bc7f";
-      socket.emit("join", userId);
-      log("<span class='event'>👤 Đã bắn event 'join' với User ID: " + userId + "</span>");
+      if (!token) {
+        alert("Vui lòng dán JWT Token thu được từ API /auth/login!");
+        return;
+      }
+
+      // Lưu lại token vào localStorage để F5 không mất
+      localStorage.setItem("test_token", token);
+
+      // Nếu đã có kết nối trước đó thì ngắt kết nối cũ
+      if (socket) {
+        socket.disconnect();
+      }
+
+      log("<span style='color: #a1a1aa;'>⏳ Đang gửi yêu cầu kết nối kèm JWT Token...</span>");
+
+      // Khởi tạo kết nối Socket truyền Token qua handshake option auth
+      socket = io({
+        auth: {
+          token: token
+        }
+      });
+
+      // Bắt sự kiện kết nối thành công (Server đã verify JWT)
+      socket.on("connect", () => {
+        log("<span class='status'>🟢 Kết nối & Xác thực JWT thành công! Socket ID: " + socket.id + "</span>");
+      });
+
+      // Bắt lỗi xác thực Token từ Server (Token hết hạn hoặc không hợp lệ)
+      socket.on("connect_error", (err) => {
+        log("<span class='error'>🔴 Lỗi kết nối Socket: " + err.message + "</span>");
+      });
+
+      // Lắng nghe sự kiện thông báo mới từ Server
+      socket.on("new_notification", (data) => {
+        log("<span class='event'>🔔 [NHẬN THÔNG BÁO REAL-TIME MỚI]:\n" + JSON.stringify(data, null, 2) + "</span>");
+      });
     }
-
-    socket.on("new_notification", (data) => {
-      log("<span class='event'>🔔 [NEW NOTIFICATION RECEIVED]:\n" + JSON.stringify(data, null, 2) + "</span>");
-    });
 
     function log(msg) {
       document.getElementById("logs").innerHTML += "<br><br>" + msg;
