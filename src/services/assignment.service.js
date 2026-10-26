@@ -12,12 +12,12 @@ async function createAssignment(assignmentData, currentUserId) {
   const createdAssignment = await assignmentRepository.create(newAssignment);
 
   await notificationService.sendNotificationToClassMembers(
-    createAssignment.class_id,
+    class_id,
     "Bai tap moi",
-    `Mentor vua dang bai tap moi: ${createAssignment.title}`
+    `Mentor vua dang bai tap moi: ${title}`
   );
 
-  return createAssignment;
+  return createdAssignment;
 }
 
 async function getAssignmentsByClass(classId) {

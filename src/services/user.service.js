@@ -1,4 +1,5 @@
 import userRepository from '../repositories/user.repository.js';
+import {v4 as uuidv4} from 'uuid';
 import bcrypt from 'bcrypt';
 
 async function getAllUsers() {
@@ -15,6 +16,9 @@ async function getUserById(id) {
 
 async function createUser(userData) {
   const { password } = userData;
+
+  // loi full_name
+  const full_name = userData.full_name || userData.name;
   if (!password) {
     throw new Error('Mật khẩu là bắt buộc!');
   }
@@ -25,9 +29,9 @@ async function createUser(userData) {
 
   // Tạo object mới, loại bỏ password thô, thêm password_hash vào
   const newUserData = {
-    id: userData.id,
+    id: uuidv4(),
     email: userData.email,
-    full_name: userData.full_name,
+    full_name,
     role: userData.role,
     password_hash: hashed // Khớp với Database cột password_hash
   };
