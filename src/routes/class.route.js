@@ -7,7 +7,7 @@ const router = express.Router();
 
 router.get("/", classController.getAllClasses);
 
-router.post("/", authMiddleware.authenticate, authMiddleware.authorizeAdmin, classController.createClass);
+router.post("/", authMiddleware.authenticate, authMiddleware.authorizeMentorOrAdmin, classController.createClass);
 
 // xem tien do hoc tap cua 1 member trong 1 class
 router.get("/:classId/progress", authMiddleware.authenticate, lessonProgressController.getClassProgress);

@@ -6,7 +6,7 @@ import authMiddleware from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/add", authMiddleware.authenticate, authMiddleware.authorizeAdmin, classMemberController.addMemberToClass);
+router.post("/add", authMiddleware.authenticate, authMiddleware.authorizeMentorOrAdmin, classMemberController.addMemberToClass);
 
 router.get("/:classId/members", authMiddleware.authenticate, classMemberController.getMembersInClass);
 

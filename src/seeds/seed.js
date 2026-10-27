@@ -20,7 +20,7 @@ async function seedData() {
       `INSERT INTO users (id, email, password_hash, full_name, role)
        VALUES 
         ($1, 'admin1@sgroup.com', $4, 'S-Group Admin', 'ADMIN'),
-        ($2, 'mentor1@sgroup.com', $4, 'Nguyen Van Mentor', 'MEMBER'),
+        ($2, 'mentor1@sgroup.com', $4, 'Nguyen Van Mentor', 'MENTOR'),
         ($3, 'member1@sgroup.com', $4, 'Tran Van Học Viên', 'MEMBER')
        ON CONFLICT (email) DO NOTHING`,
       [adminId, mentorId, memberId, passwordHash]
