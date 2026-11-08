@@ -1,5 +1,6 @@
 import lessonRepository from '../repositories/lesson.repository.js';
 import { v4 as uuidv4 } from 'uuid';
+import { buildPaginationMeta } from '../utils/pagination.js';
 
 async function createLesson(lessonData, currentUserId) {
   const {class_id, order} = lessonData;
@@ -19,8 +20,13 @@ async function createLesson(lessonData, currentUserId) {
   return await lessonRepository.create(newLessonData);
 }
 
-async function getLessonsByClass(classId) {
-  return await lessonRepository.findByClassId(classId);
+async function getLessonsByClass(classId, paginationParams) {
+  const [lessons, totalItems] = await Promise.all([
+    lessonRepository.findByClassId(classId, paginationParams),
+    lessonRepository.countByClassId(classId),
+  ]);
+  const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
+  return { lessons, pagination };
 }
 
 const lessonService = {

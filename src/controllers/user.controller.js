@@ -1,9 +1,15 @@
 import userService from '../services/user.service.js';
+import { parsePaginationParams } from '../utils/pagination.js';
 
 async function getAllUsers(req, res, next) {
   try {
-    const users = await userService.getAllUsers();
-    res.status(200).json({ data: users });
+    const paginationParams = parsePaginationParams(req.query, {
+      allowedSortFields: ['created_at', 'email', 'full_name', 'role', 'updated_at'],
+      defaultSortBy: 'created_at',
+      defaultSortOrder: 'DESC',
+    });
+    const { users, pagination } = await userService.getAllUsers(paginationParams);
+    res.status(200).json({ data: users, pagination });
   } catch (error) {
     next(error);
   }

@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { buildPaginationSQL } from '../utils/pagination.js';
 
 // 1. Member nộp bài hoặc cập nhật bài nộp (Upsert nếu đã tồn tại UNIQUE assignment_id + member_id)
 async function upsert(submissionData) {
@@ -30,16 +31,24 @@ async function findByAssignmentAndMember(assignmentId, memberId) {
 }
 
 // 3. Mentor xem danh sách tất cả bài nộp của 1 assignment (Join với bảng users để lấy tên Member)
-async function findByAssignmentId(assignmentId) {
+async function findByAssignmentId(assignmentId, paginationParams) {
+  const paginationSQL = buildPaginationSQL(paginationParams);
   const query = `
     SELECT s.*, u.full_name as member_name, u.email as member_email
     FROM submissions s
     JOIN users u ON s.member_id = u.id
     WHERE s.assignment_id = $1
-    ORDER BY s.submitted_at DESC;
+    ${paginationSQL};
   `;
   const res = await db.query(query, [assignmentId]);
   return res.rows;
+}
+
+// Đếm tổng số submissions theo assignment
+async function countByAssignmentId(assignmentId) {
+  const query = `SELECT COUNT(*)::int AS total FROM submissions WHERE assignment_id = $1`;
+  const res = await db.query(query, [assignmentId]);
+  return res.rows[0].total;
 }
 
 // 4. Tìm submission theo ID
@@ -67,6 +76,7 @@ const submissionRepository = {
   upsert,
   findByAssignmentAndMember,
   findByAssignmentId,
+  countByAssignmentId,
   findById,
   updateGrade,
 };

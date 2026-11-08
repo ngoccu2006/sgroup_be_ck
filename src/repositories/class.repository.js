@@ -1,4 +1,5 @@
 import db from '../configs/db.js';
+import { buildPaginationSQL } from '../utils/pagination.js';
 
 async function create(classData){
   const {id, name, description, start_date, end_date, mentor_id} = classData;
@@ -11,14 +12,21 @@ async function create(classData){
   return res.rows[0];
 }
 
-async function findAll() {
-  const res = await db.query(`SELECT * FROM classes ORDER BY created_at DESC`);
+async function findAll(paginationParams) {
+  const paginationSQL = buildPaginationSQL(paginationParams);
+  const res = await db.query(`SELECT * FROM classes ${paginationSQL}`);
   return res.rows;
+}
+
+async function countAll() {
+  const res = await db.query(`SELECT COUNT(*)::int AS total FROM classes`);
+  return res.rows[0].total;
 }
 
 const classRepository = {
   create,
-  findAll
+  findAll,
+  countAll
 };
 
 export default classRepository;

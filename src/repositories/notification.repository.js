@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { buildPaginationSQL } from '../utils/pagination.js';
 
 // Tạo thông báo mới
 async function create(notificationData) {
@@ -13,15 +14,22 @@ async function create(notificationData) {
 }
 
 // Lấy danh sách thông báo của User
-async function findByUserId(userId) {
+async function findByUserId(userId, paginationParams) {
+  const paginationSQL = buildPaginationSQL(paginationParams);
   const query = `
     SELECT * FROM notifications 
     WHERE user_id = $1 
-    ORDER BY created_at DESC 
-    LIMIT 20;
+    ${paginationSQL};
   `;
   const res = await db.query(query, [userId]);
   return res.rows;
+}
+
+// Đếm tổng số thông báo của user
+async function countByUserId(userId) {
+  const query = `SELECT COUNT(*)::int AS total FROM notifications WHERE user_id = $1`;
+  const res = await db.query(query, [userId]);
+  return res.rows[0].total;
 }
 
 // Đánh dấu 1 thông báo là đã đọc
@@ -39,6 +47,7 @@ async function markAsRead(id, userId) {
 const notificationRepository = {
   create,
   findByUserId,
+  countByUserId,
   markAsRead,
 };
 

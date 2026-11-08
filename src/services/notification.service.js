@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import notificationRepository from "../repositories/notification.repository.js";
 import { getIO } from "../configs/socket.config.js";
 import db from "../configs/db.js";
+import { buildPaginationMeta } from '../utils/pagination.js';
 
 // 1. Hàm gửi thông báo riêng cho 1 User (Bảo gồm lưu DB + bắn Socket)
 async function sendNotificationToUser(userId, title, message) {
@@ -41,8 +42,13 @@ async function sendNotificationToClassMembers(classId, title, message) {
   await Promise.all(promises);
 }
 
-async function getUserNotifications(userId) {
-  return await notificationRepository.findByUserId(userId);
+async function getUserNotifications(userId, paginationParams) {
+  const [notifications, totalItems] = await Promise.all([
+    notificationRepository.findByUserId(userId, paginationParams),
+    notificationRepository.countByUserId(userId),
+  ]);
+  const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
+  return { notifications, pagination };
 }
 
 async function markAsRead(notificationId, userId) {

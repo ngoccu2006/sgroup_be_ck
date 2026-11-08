@@ -1,4 +1,5 @@
 import lessonService from '../services/lesson.service.js';
+import { parsePaginationParams } from '../utils/pagination.js';
 
 async function createLesson(req, res, next) {
   try {
@@ -18,8 +19,13 @@ async function createLesson(req, res, next) {
 async function getLessonsByClass(req, res, next) {
   try {
     const { classId } = req.params;
-    const lessons = await lessonService.getLessonsByClass(classId);
-    res.status(200).json({ data: lessons });
+    const paginationParams = parsePaginationParams(req.query, {
+      allowedSortFields: ['order', 'created_at', 'title'],
+      defaultSortBy: 'order',
+      defaultSortOrder: 'ASC',
+    });
+    const { lessons, pagination } = await lessonService.getLessonsByClass(classId, paginationParams);
+    res.status(200).json({ data: lessons, pagination });
   } catch (error) {
     next(error);
   }

@@ -1,4 +1,5 @@
 import db from "../configs/db.js";
+import { buildPaginationSQL } from '../utils/pagination.js';
 
 // tao assignment
 
@@ -18,14 +19,22 @@ async function create(assignmentData){
 }
 
 // lay danh sach assignment theo lớp
-async function findByClassId(classId){
+async function findByClassId(classId, paginationParams){
+  const paginationSQL = buildPaginationSQL(paginationParams);
   const query = `
     SELECT * FROM assignments
     WHERE class_id = $1
-    ORDER BY created_at ASC;
+    ${paginationSQL};
   `;
   const res = await db.query(query, [classId]);
   return res.rows;
+}
+
+// dem tong so assignment theo lop
+async function countByClassId(classId) {
+  const query = `SELECT COUNT(*)::int AS total FROM assignments WHERE class_id = $1`;
+  const res = await db.query(query, [classId]);
+  return res.rows[0].total;
 }
 
 // tim assignment theo id
@@ -62,6 +71,7 @@ async function deleteById(id){
 const assignmentRepository = {
   create,
   findByClassId,
+  countByClassId,
   findById,
   update,
   deleteById

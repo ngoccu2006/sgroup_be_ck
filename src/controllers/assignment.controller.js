@@ -1,4 +1,5 @@
 import assignmentService from "../services/assignment.service.js";
+import { parsePaginationParams } from '../utils/pagination.js';
 
 async function createAssignment(req, res, next) {
   try{
@@ -15,9 +16,15 @@ async function createAssignment(req, res, next) {
 async function getAssignmentsByClass(req, res, next) {
   try{
     const {classId} = req.params;
-    const assigments = await assignmentService.getAssignmentsByClass(classId);
+    const paginationParams = parsePaginationParams(req.query, {
+      allowedSortFields: ['created_at', 'title', 'deadline', 'maximum_score'],
+      defaultSortBy: 'created_at',
+      defaultSortOrder: 'ASC',
+    });
+    const { assignments, pagination } = await assignmentService.getAssignmentsByClass(classId, paginationParams);
     res.status(200).json({
-      data: assigments
+      data: assignments,
+      pagination
     });
   } catch(error){
     next(error);

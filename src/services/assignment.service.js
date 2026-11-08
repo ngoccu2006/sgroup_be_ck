@@ -1,6 +1,7 @@
 import {v4 as uuidv4} from 'uuid';
 import assignmentRepository from '../repositories/assignment.repository.js';
 import notificationService from "./notification.service.js";
+import { buildPaginationMeta } from '../utils/pagination.js';
 
 async function createAssignment(assignmentData, currentUserId) {
   const {class_id, title} = assignmentData;
@@ -20,8 +21,13 @@ async function createAssignment(assignmentData, currentUserId) {
   return createdAssignment;
 }
 
-async function getAssignmentsByClass(classId) {
-  return await assignmentRepository.findByClassId(classId);
+async function getAssignmentsByClass(classId, paginationParams) {
+  const [assignments, totalItems] = await Promise.all([
+    assignmentRepository.findByClassId(classId, paginationParams),
+    assignmentRepository.countByClassId(classId),
+  ]);
+  const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
+  return { assignments, pagination };
 }
 
 async function getAssignmentById(id){

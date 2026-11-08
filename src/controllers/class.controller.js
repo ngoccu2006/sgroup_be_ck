@@ -1,4 +1,5 @@
 import classService from "../services/class.service.js";
+import { parsePaginationParams } from '../utils/pagination.js';
 
 async function createClass(req, res, next) {
   try{
@@ -14,8 +15,13 @@ async function createClass(req, res, next) {
 
 async function getAllClasses(req, res, next) {
   try{
-    const classes = await classService.getAllClasses();
-    res.status(200).json({ data: classes});
+    const paginationParams = parsePaginationParams(req.query, {
+      allowedSortFields: ['created_at', 'name', 'start_date', 'end_date', 'updated_at'],
+      defaultSortBy: 'created_at',
+      defaultSortOrder: 'DESC',
+    });
+    const { classes, pagination } = await classService.getAllClasses(paginationParams);
+    res.status(200).json({ data: classes, pagination });
   } catch(error){
     next(error)
   }

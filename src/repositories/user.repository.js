@@ -1,12 +1,19 @@
 import db from '../configs/db.js';
+import { buildPaginationSQL } from '../utils/pagination.js';
 
-async function findAll() {
+async function findAll(paginationParams) {
+  const paginationSQL = buildPaginationSQL(paginationParams);
   const res = await db.query(
     `SELECT id, email, full_name, role, created_at, updated_at 
      FROM users 
-     ORDER BY created_at DESC`
+     ${paginationSQL}`
   );
   return res.rows;
+}
+
+async function countAll() {
+  const res = await db.query(`SELECT COUNT(*)::int AS total FROM users`);
+  return res.rows[0].total;
 }
 
 async function findById(id) {
@@ -51,6 +58,7 @@ async function remove(id) {
 
 const userRepository = {
   findAll,
+  countAll,
   findById,
   create,
   update,

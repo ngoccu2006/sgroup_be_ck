@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import submissionRepository from "../repositories/submission.repository.js";
 import assignmentRepository from "../repositories/assignment.repository.js";
 import notificationService from "./notification.service.js";
+import { buildPaginationMeta } from '../utils/pagination.js';
 
 async function submitAssignment(submissionData, currentMemberId) {
   const { assignment_id, content, repository_url, file_url} = submissionData;
@@ -47,8 +48,13 @@ async function getMySubmission(assignmentId, currentMemberId) {
   return submission;
 }
 
-async function getSubmissionsByAssignment(assignmentId) {
-  return await submissionRepository.findByAssignmentId(assignmentId);
+async function getSubmissionsByAssignment(assignmentId, paginationParams) {
+  const [submissions, totalItems] = await Promise.all([
+    submissionRepository.findByAssignmentId(assignmentId, paginationParams),
+    submissionRepository.countByAssignmentId(assignmentId),
+  ]);
+  const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
+  return { submissions, pagination };
 }
 
 async function gradeSubmission(submissionId, score, feedback) {

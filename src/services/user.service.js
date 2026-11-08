@@ -1,9 +1,15 @@
 import userRepository from '../repositories/user.repository.js';
 import {v4 as uuidv4} from 'uuid';
 import bcrypt from 'bcrypt';
+import { buildPaginationMeta } from '../utils/pagination.js';
 
-async function getAllUsers() {
-  return await userRepository.findAll();
+async function getAllUsers(paginationParams) {
+  const [users, totalItems] = await Promise.all([
+    userRepository.findAll(paginationParams),
+    userRepository.countAll(),
+  ]);
+  const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
+  return { users, pagination };
 }
 
 async function getUserById(id) {
