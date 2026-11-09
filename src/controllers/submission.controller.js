@@ -38,8 +38,18 @@ async function getMySubmission(req, res, next) {
 async function getSubmissionsByAssignment(req, res, next) {
   try {
     const { assignmentId } = req.params;
-    const submissions = await submissionService.getSubmissionsByAssignment(assignmentId);
-    res.status(200).json({ data: submissions });
+    const paginationParams = parsePaginationParams(req.query);
+    const { submissions, pagination } = await submissionService.getSubmissionsByAssignment(assignmentId, paginationParams);
+    res.status(200).json({ data: submissions, pagination });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function getSubmissionHistory(req, res, next) {
+  try {
+    const result = await submissionService.getSubmissionHistory(req.params.id, req.user);
+    res.status(200).json({ data: result });
   } catch (error) {
     next(error);
   }
@@ -60,6 +70,7 @@ const submissionController = {
   submitAssignment,
   getMySubmission,
   getSubmissionsByAssignment,
+  getSubmissionHistory,
   gradeSubmission,
 };
 

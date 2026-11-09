@@ -16,6 +16,9 @@ router.get("/my-submission/:assignmentId", submissionController.getMySubmission)
 // Mentor/Admin xem tất cả danh sách bài nộp của 1 assignment
 router.get("/assignment/:assignmentId", authMiddleware.authorizeMentorOrAdmin, submissionController.getSubmissionsByAssignment);
 
+// Lịch sử các lần nộp (member chủ bài / mentor / admin)
+router.get("/:id/history", submissionController.getSubmissionHistory);
+
 // Mentor/Admin chấm điểm & feedback
 router.put("/:id/grade", authMiddleware.authorizeMentorOrAdmin, submissionController.gradeSubmission);
 
