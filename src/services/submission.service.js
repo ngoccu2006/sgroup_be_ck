@@ -57,6 +57,23 @@ async function getSubmissionsByAssignment(assignmentId, paginationParams) {
   return { submissions, pagination };
 }
 
+async function getSubmissionHistory(submissionId, user) {
+  const submission = await submissionRepository.findById(submissionId);
+  if (!submission) {
+    const error = new Error("Bản ghi bài nộp không tồn tại!");
+    error.statusCode = 404;
+    throw error;
+  }
+  // Member chỉ xem lịch sử bài của chính mình; mentor/admin xem được tất cả
+  if (user.role === "MEMBER" && submission.member_id !== user.id) {
+    const error = new Error("Bạn không có quyền xem lịch sử bài nộp này!");
+    error.statusCode = 403;
+    throw error;
+  }
+  const history = await submissionRepository.findHistoryBySubmissionId(submissionId);
+  return { current: submission, history };
+}
+
 async function gradeSubmission(submissionId, score, feedback) {
   const submission = await submissionRepository.findById(submissionId);
   if (!submission) {
@@ -89,6 +106,7 @@ const submissionService = {
   submitAssignment,
   getMySubmission,
   getSubmissionsByAssignment,
+  getSubmissionHistory,
   gradeSubmission,
 };
 
