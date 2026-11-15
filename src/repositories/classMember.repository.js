@@ -1,4 +1,5 @@
 import db from '../configs/db.js';
+import { buildPaginationSQL, buildClassMemberFilterSQL } from '../utils/pagination.js';
 
 // Thêm học viên vào lớp
 async function addMember(classId, memberId) {
@@ -11,21 +12,46 @@ async function addMember(classId, memberId) {
   return res.rows[0];
 }
 
-// Lấy danh sách tất cả học viên trong một lớp (Dùng câu lệnh JOIN để lấy thêm tên và email học viên)
-async function findMembersByClassId(classId) {
+// Lấy danh sách tất cả học viên trong một lớp (có search, pagination)
+async function findMembersByClassId(classId, paginationParams = {}) {
+  const { whereClause, values } = buildClassMemberFilterSQL(classId, paginationParams, 1);
+  const paginationSQL = paginationParams.sortBy ? buildPaginationSQL({
+    ...paginationParams,
+    sortBy: paginationParams.sortBy === 'full_name' ? 'u.full_name' 
+          : paginationParams.sortBy === 'email' ? 'u.email'
+          : paginationParams.sortBy === 'joined_at' ? 'cm.joined_at'
+          : 'cm.joined_at',
+    sortOrder: paginationParams.sortOrder || 'DESC',
+  }) : buildPaginationSQL({ ...paginationParams, sortBy: 'cm.joined_at', sortOrder: 'DESC' });
+
   const res = await db.query(
     `SELECT cm.class_id, cm.joined_at, u.id as member_id, u.email, u.full_name, u.role
      FROM class_members cm
      JOIN users u ON cm.member_id = u.id
-     WHERE cm.class_id = $1`,
-    [classId]
+     ${whereClause}
+     ${paginationSQL}`,
+    values
   );
   return res.rows;
 }
 
+// Đếm tổng số học viên trong lớp (có filter)
+async function countMembersByClassId(classId, paginationParams = {}) {
+  const { whereClause, values } = buildClassMemberFilterSQL(classId, paginationParams, 1);
+  const res = await db.query(
+    `SELECT COUNT(*)::int AS total 
+     FROM class_members cm
+     JOIN users u ON cm.member_id = u.id
+     ${whereClause}`,
+    values
+  );
+  return res.rows[0].total;
+}
+
 const classMemberRepository = {
   addMember,
-  findMembersByClassId
+  findMembersByClassId,
+  countMembersByClassId
 };
 
 export default classMemberRepository;

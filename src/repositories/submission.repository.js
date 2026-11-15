@@ -1,5 +1,5 @@
 import db from "../configs/db.js";
-import { buildPaginationSQL } from '../utils/pagination.js';
+import { buildPaginationSQL, buildSubmissionFilterSQL } from '../utils/pagination.js';
 
 // 1. Member nộp bài hoặc cập nhật bài nộp (Upsert nếu đã tồn tại UNIQUE assignment_id + member_id)
 // Nộp lại: lưu bản cũ vào submission_history, tăng version, reset điểm/feedback (trong 1 transaction)
@@ -72,24 +72,34 @@ async function findByAssignmentAndMember(assignmentId, memberId) {
   return res.rows[0];
 }
 
-// 3. Mentor xem danh sách tất cả bài nộp của 1 assignment (Join với bảng users để lấy tên Member)
-async function findByAssignmentId(assignmentId, paginationParams) {
-  const paginationSQL = buildPaginationSQL(paginationParams);
+// 3. Mentor xem danh sách tất cả bài nộp của 1 assignment (có search, filter, pagination)
+async function findByAssignmentId(assignmentId, paginationParams = {}) {
+  const { whereClause, values } = buildSubmissionFilterSQL(assignmentId, paginationParams, 1);
+  const paginationSQL = buildPaginationSQL({
+    ...paginationParams,
+    sortBy: paginationParams.sortBy?.includes('.') ? paginationParams.sortBy : `s.${paginationParams.sortBy || 'submitted_at'}`,
+  });
   const query = `
     SELECT s.*, u.full_name as member_name, u.email as member_email
     FROM submissions s
     JOIN users u ON s.member_id = u.id
-    WHERE s.assignment_id = $1
+    ${whereClause}
     ${paginationSQL};
   `;
-  const res = await db.query(query, [assignmentId]);
+  const res = await db.query(query, values);
   return res.rows;
 }
 
-// Đếm tổng số submissions theo assignment
-async function countByAssignmentId(assignmentId) {
-  const query = `SELECT COUNT(*)::int AS total FROM submissions WHERE assignment_id = $1`;
-  const res = await db.query(query, [assignmentId]);
+// Đếm tổng số submissions theo assignment (có filter)
+async function countByAssignmentId(assignmentId, paginationParams = {}) {
+  const { whereClause, values } = buildSubmissionFilterSQL(assignmentId, paginationParams, 1);
+  const query = `
+    SELECT COUNT(*)::int AS total 
+    FROM submissions s
+    JOIN users u ON s.member_id = u.id
+    ${whereClause}
+  `;
+  const res = await db.query(query, values);
   return res.rows[0].total;
 }
 

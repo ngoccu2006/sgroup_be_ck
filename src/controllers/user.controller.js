@@ -8,6 +8,9 @@ async function getAllUsers(req, res, next) {
       defaultSortBy: 'created_at',
       defaultSortOrder: 'DESC',
     });
+    // Thêm role filter từ query params
+    paginationParams.role = req.query.role || '';
+
     const { users, pagination } = await userService.getAllUsers(paginationParams);
     res.status(200).json({ data: users, pagination });
   } catch (error) {

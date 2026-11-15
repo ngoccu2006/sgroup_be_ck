@@ -1,5 +1,5 @@
 import db from "../configs/db.js";
-import { buildPaginationSQL } from '../utils/pagination.js';
+import { buildPaginationSQL, buildNotificationFilterSQL } from '../utils/pagination.js';
 
 // Tạo thông báo mới
 async function create(notificationData) {
@@ -13,22 +13,24 @@ async function create(notificationData) {
   return res.rows[0];
 }
 
-// Lấy danh sách thông báo của User
-async function findByUserId(userId, paginationParams) {
+// Lấy danh sách thông báo của User (có search, filter, pagination)
+async function findByUserId(userId, paginationParams = {}) {
+  const { whereClause, values } = buildNotificationFilterSQL(userId, paginationParams, 1);
   const paginationSQL = buildPaginationSQL(paginationParams);
   const query = `
     SELECT * FROM notifications 
-    WHERE user_id = $1 
+    ${whereClause} 
     ${paginationSQL};
   `;
-  const res = await db.query(query, [userId]);
+  const res = await db.query(query, values);
   return res.rows;
 }
 
-// Đếm tổng số thông báo của user
-async function countByUserId(userId) {
-  const query = `SELECT COUNT(*)::int AS total FROM notifications WHERE user_id = $1`;
-  const res = await db.query(query, [userId]);
+// Đếm tổng số thông báo của user (có filter)
+async function countByUserId(userId, paginationParams = {}) {
+  const { whereClause, values } = buildNotificationFilterSQL(userId, paginationParams, 1);
+  const query = `SELECT COUNT(*)::int AS total FROM notifications ${whereClause}`;
+  const res = await db.query(query, values);
   return res.rows[0].total;
 }
 

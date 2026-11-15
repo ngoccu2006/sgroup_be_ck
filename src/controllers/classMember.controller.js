@@ -1,4 +1,5 @@
 import classMemberService from "../services/classMember.service.js";
+import { parsePaginationParams } from '../utils/pagination.js';
 
 async function addMemberToClass(req, res, next) {
   try{
@@ -22,9 +23,16 @@ async function addMemberToClass(req, res, next) {
 async function getMembersInClass(req, res, next) {
   try{
     const {classId } = req.params;
-    const members = await classMemberService.getMembersInClass(classId);
+    const paginationParams = parsePaginationParams(req.query, {
+      allowedSortFields: ['joined_at', 'full_name', 'email'],
+      defaultSortBy: 'joined_at',
+      defaultSortOrder: 'DESC',
+    });
+
+    const { members, pagination } = await classMemberService.getMembersInClass(classId, paginationParams);
     res.status(200).json({
-      data: members
+      data: members,
+      pagination
     });
   } catch(error){
     next(error);

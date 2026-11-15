@@ -1,5 +1,5 @@
 import db from '../configs/db.js';
-import { buildPaginationSQL } from '../utils/pagination.js';
+import { buildPaginationSQL, buildClassFilterSQL } from '../utils/pagination.js';
 
 async function create(classData){
   const {id, name, description, start_date, end_date, mentor_id} = classData;
@@ -13,13 +13,28 @@ async function create(classData){
 }
 
 async function findAll(paginationParams) {
-  const paginationSQL = buildPaginationSQL(paginationParams);
-  const res = await db.query(`SELECT * FROM classes ${paginationSQL}`);
+  const { whereClause, values, nextParamIndex } = buildClassFilterSQL(paginationParams, 1);
+  const paginationSQL = buildPaginationSQL({
+    sortBy: paginationParams.sortBy,
+    sortOrder: paginationParams.sortOrder,
+    limit: paginationParams.limit,
+    offset: paginationParams.offset,
+  });
+
+  const query = `
+    SELECT id, name, description, start_date, end_date, mentor_id, created_at, updated_at 
+    FROM classes 
+    ${whereClause} 
+    ${paginationSQL}
+  `;
+  const res = await db.query(query, values);
   return res.rows;
 }
 
-async function countAll() {
-  const res = await db.query(`SELECT COUNT(*)::int AS total FROM classes`);
+async function countAll(paginationParams = {}) {
+  const { whereClause, values } = buildClassFilterSQL(paginationParams, 1);
+  const query = `SELECT COUNT(*)::int AS total FROM classes ${whereClause}`;
+  const res = await db.query(query, values);
   return res.rows[0].total;
 }
 

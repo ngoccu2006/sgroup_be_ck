@@ -13,10 +13,24 @@ async function createClass(classData) {
 async function getAllClasses(paginationParams) {
   const [classes, totalItems] = await Promise.all([
     classRepository.findAll(paginationParams),
-    classRepository.countAll(),
+    classRepository.countAll(paginationParams),
   ]);
   const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
-  return { classes, pagination };
+
+  // Xử lý trang vượt quá giới hạn: trả về danh sách rỗng, không báo lỗi
+  const items = (totalItems > 0 && paginationParams.page > pagination.totalPages) ? [] : classes;
+
+  return {
+    items,
+    total: pagination.total,
+    page: pagination.page,
+    limit: pagination.limit,
+    totalPages: pagination.totalPages,
+    // Tương thích ngược:
+    classes: items,
+    data: items,
+    pagination,
+  };
 }
 
 const classService = {

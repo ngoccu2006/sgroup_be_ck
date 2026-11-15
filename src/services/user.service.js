@@ -6,7 +6,7 @@ import { buildPaginationMeta } from '../utils/pagination.js';
 async function getAllUsers(paginationParams) {
   const [users, totalItems] = await Promise.all([
     userRepository.findAll(paginationParams),
-    userRepository.countAll(),
+    userRepository.countAll(paginationParams),
   ]);
   const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
   return { users, pagination };
