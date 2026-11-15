@@ -23,9 +23,18 @@ async function findMembersByClassId(classId) {
   return res.rows;
 }
 
+async function isMember(classId, memberId){
+  const res = await db.query(
+    `SELECT * FROM class_members WHERE class_id = $1 AND member_id = $2`,
+    [classId, memberId]
+  );
+  return res.rows.length > 0;
+}
+
 const classMemberRepository = {
   addMember,
-  findMembersByClassId
+  findMembersByClassId,
+  isMember
 };
 
 export default classMemberRepository;

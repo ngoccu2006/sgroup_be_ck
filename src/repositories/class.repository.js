@@ -23,10 +23,16 @@ async function countAll() {
   return res.rows[0].total;
 }
 
+async function findById(id) {
+  const res = await db.query(`SELECT * FROM classes WHERE id = $1`, [id]);
+  return res.rows[0];
+}
+
 const classRepository = {
   create,
   findAll,
-  countAll
+  countAll,
+  findById
 };
 
 export default classRepository;

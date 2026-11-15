@@ -43,11 +43,20 @@ async function findByClassAndOrder(classId, order){
   return res.rows[0];
 }
 
+async function findById(id) {
+  const res = await db.query(
+    `SELECT id, class_id, title, content, "order" FROM lessons WHERE id = $1`,
+    [id]
+  );
+  return res.rows[0];
+}
+
 const lessonRepository = {
   create,
   findByClassId,
   countByClassId,
-  findByClassAndOrder
+  findByClassAndOrder,
+  findById
 }
 
 export default lessonRepository;
