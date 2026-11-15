@@ -1,0 +1,2 @@
+ALTER TABLE class_schedules
+  ADD COLUMN IF NOT EXISTS lesson_id VARCHAR(36) REFERENCES lessons(id) ON DELETE SET NULL;
