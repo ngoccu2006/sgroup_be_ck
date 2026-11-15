@@ -14,8 +14,8 @@ async function submitAssignment(req, res, next) {
     const submissionData = {
       assignment_id: req.body.assignment_id,
       content: req.body.content || null,
-      repository_url: req.body.repository_url || null, // Link GitHub
-      file_url: fileUrl,                              // Link File R2
+      repository_url: req.body.repository_url || null,
+      file_url: fileUrl,
     };
 
     const submission = await submissionService.submitAssignment(submissionData, req.user.id);
@@ -38,7 +38,14 @@ async function getMySubmission(req, res, next) {
 async function getSubmissionsByAssignment(req, res, next) {
   try {
     const { assignmentId } = req.params;
-    const paginationParams = parsePaginationParams(req.query);
+    const paginationParams = parsePaginationParams(req.query, {
+      allowedSortFields: ['submitted_at', 'score', 'reviewed_at'],
+      defaultSortBy: 'submitted_at',
+      defaultSortOrder: 'DESC',
+    });
+    // Thêm status filter (GRADED / PENDING)
+    paginationParams.status = req.query.status || '';
+
     const { submissions, pagination } = await submissionService.getSubmissionsByAssignment(assignmentId, paginationParams);
     res.status(200).json({ data: submissions, pagination });
   } catch (error) {

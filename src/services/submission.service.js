@@ -51,7 +51,7 @@ async function getMySubmission(assignmentId, currentMemberId) {
 async function getSubmissionsByAssignment(assignmentId, paginationParams) {
   const [submissions, totalItems] = await Promise.all([
     submissionRepository.findByAssignmentId(assignmentId, paginationParams),
-    submissionRepository.countByAssignmentId(assignmentId),
+    submissionRepository.countByAssignmentId(assignmentId, paginationParams),
   ]);
   const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
   return { submissions, pagination };

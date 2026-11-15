@@ -24,7 +24,7 @@ async function createAssignment(assignmentData, currentUserId) {
 async function getAssignmentsByClass(classId, paginationParams) {
   const [assignments, totalItems] = await Promise.all([
     assignmentRepository.findByClassId(classId, paginationParams),
-    assignmentRepository.countByClassId(classId),
+    assignmentRepository.countByClassId(classId, paginationParams),
   ]);
   const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
   return { assignments, pagination };

@@ -19,11 +19,24 @@ async function getAllClasses(req, res, next) {
       allowedSortFields: ['created_at', 'name', 'start_date', 'end_date', 'updated_at'],
       defaultSortBy: 'created_at',
       defaultSortOrder: 'DESC',
+      defaultLimit: 10,
     });
-    const { classes, pagination } = await classService.getAllClasses(paginationParams);
-    res.status(200).json({ data: classes, pagination });
+    const result = await classService.getAllClasses(paginationParams);
+    res.status(200).json({
+      items: result.items,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      totalPages: result.totalPages,
+      // Tương thích ngược:
+      data: result.items,
+      pagination: result.pagination,
+    });
   } catch(error){
-    next(error)
+    if (error.statusCode === 400) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
   }
 }
 

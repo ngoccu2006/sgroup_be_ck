@@ -1,5 +1,5 @@
 import db from "../configs/db.js"
-import { buildPaginationSQL } from '../utils/pagination.js';
+import { buildPaginationSQL, buildLessonFilterSQL } from '../utils/pagination.js';
 
 async function create(lessonData){
   const {id, class_id, title, content, order, created_by} = lessonData;
@@ -15,22 +15,24 @@ async function create(lessonData){
 }
 
 async function findByClassId(classId, paginationParams){
+  const { whereClause, values } = buildLessonFilterSQL(classId, paginationParams, 1);
   const paginationSQL = buildPaginationSQL(paginationParams);
   const res = await db.query(
     `SELECT id, class_id, title, content, "order", created_by, created_at
     FROM lessons
-    WHERE class_id = $1
+    ${whereClause}
     ${paginationSQL}`,
-    [classId]
+    values
   );
 
   return res.rows;
 }
 
-async function countByClassId(classId) {
+async function countByClassId(classId, paginationParams = {}) {
+  const { whereClause, values } = buildLessonFilterSQL(classId, paginationParams, 1);
   const res = await db.query(
-    `SELECT COUNT(*)::int AS total FROM lessons WHERE class_id = $1`,
-    [classId]
+    `SELECT COUNT(*)::int AS total FROM lessons ${whereClause}`,
+    values
   );
   return res.rows[0].total;
 }

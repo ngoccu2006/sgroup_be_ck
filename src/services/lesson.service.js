@@ -23,7 +23,7 @@ async function createLesson(lessonData, currentUserId) {
 async function getLessonsByClass(classId, paginationParams) {
   const [lessons, totalItems] = await Promise.all([
     lessonRepository.findByClassId(classId, paginationParams),
-    lessonRepository.countByClassId(classId),
+    lessonRepository.countByClassId(classId, paginationParams),
   ]);
   const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
   return { lessons, pagination };

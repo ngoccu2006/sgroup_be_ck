@@ -1,39 +1,37 @@
 import db from "../configs/db.js";
-import { buildPaginationSQL } from '../utils/pagination.js';
+import { buildPaginationSQL, buildAssignmentFilterSQL } from '../utils/pagination.js';
 
 // tao assignment
-
 async function create(assignmentData){
-
   const {id, class_id, title, description, deadline, maximum_score, created_by} = assignmentData;
   const query = `
     INSERT INTO assignments (id, class_id, title, description, deadline, maximum_score, created_by)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
     RETURNING *;
   `;
-
   const values = [id, class_id, title, description, deadline, maximum_score || 10, created_by];
-
   const res = await db.query(query, values);
   return res.rows[0];
 }
 
-// lay danh sach assignment theo lớp
+// lay danh sach assignment theo lớp (có search, filter, pagination)
 async function findByClassId(classId, paginationParams){
+  const { whereClause, values } = buildAssignmentFilterSQL(classId, paginationParams, 1);
   const paginationSQL = buildPaginationSQL(paginationParams);
   const query = `
     SELECT * FROM assignments
-    WHERE class_id = $1
+    ${whereClause}
     ${paginationSQL};
   `;
-  const res = await db.query(query, [classId]);
+  const res = await db.query(query, values);
   return res.rows;
 }
 
-// dem tong so assignment theo lop
-async function countByClassId(classId) {
-  const query = `SELECT COUNT(*)::int AS total FROM assignments WHERE class_id = $1`;
-  const res = await db.query(query, [classId]);
+// dem tong so assignment theo lop (có filter)
+async function countByClassId(classId, paginationParams = {}) {
+  const { whereClause, values } = buildAssignmentFilterSQL(classId, paginationParams, 1);
+  const query = `SELECT COUNT(*)::int AS total FROM assignments ${whereClause}`;
+  const res = await db.query(query, values);
   return res.rows[0].total;
 }
 
@@ -44,7 +42,7 @@ async function findById(id){
   return res.rows[0];
 }
 
-// cap nhat assignment , id : la id cua assignment
+// cap nhat assignment
 async function update(id, updateData){
   const {title, description, deadline, maximum_score} = updateData;
   const query = `

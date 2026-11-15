@@ -1,4 +1,5 @@
 import classMemberRepository from '../repositories/classMember.repository.js';
+import { buildPaginationMeta } from '../utils/pagination.js';
 
 async function addMemberToClass(classId, memberId) {
   try {
@@ -12,8 +13,13 @@ async function addMemberToClass(classId, memberId) {
   }
 }
 
-async function getMembersInClass(classId) {
-  return await classMemberRepository.findMembersByClassId(classId);
+async function getMembersInClass(classId, paginationParams = {}) {
+  const [members, totalItems] = await Promise.all([
+    classMemberRepository.findMembersByClassId(classId, paginationParams),
+    classMemberRepository.countMembersByClassId(classId, paginationParams),
+  ]);
+  const pagination = buildPaginationMeta(paginationParams.page || 1, paginationParams.limit || 10, totalItems);
+  return { members, pagination };
 }
 
 const classMemberService = {

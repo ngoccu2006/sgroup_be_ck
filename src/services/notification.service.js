@@ -45,7 +45,7 @@ async function sendNotificationToClassMembers(classId, title, message) {
 async function getUserNotifications(userId, paginationParams) {
   const [notifications, totalItems] = await Promise.all([
     notificationRepository.findByUserId(userId, paginationParams),
-    notificationRepository.countByUserId(userId),
+    notificationRepository.countByUserId(userId, paginationParams),
   ]);
   const pagination = buildPaginationMeta(paginationParams.page, paginationParams.limit, totalItems);
   return { notifications, pagination };

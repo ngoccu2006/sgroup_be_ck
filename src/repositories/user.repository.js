@@ -1,18 +1,26 @@
 import db from '../configs/db.js';
-import { buildPaginationSQL } from '../utils/pagination.js';
+import { buildPaginationSQL, buildUserFilterSQL } from '../utils/pagination.js';
 
 async function findAll(paginationParams) {
+  const { whereClause, values } = buildUserFilterSQL(paginationParams, 1);
   const paginationSQL = buildPaginationSQL(paginationParams);
+
   const res = await db.query(
     `SELECT id, email, full_name, role, created_at, updated_at 
      FROM users 
-     ${paginationSQL}`
+     ${whereClause} 
+     ${paginationSQL}`,
+    values
   );
   return res.rows;
 }
 
-async function countAll() {
-  const res = await db.query(`SELECT COUNT(*)::int AS total FROM users`);
+async function countAll(paginationParams = {}) {
+  const { whereClause, values } = buildUserFilterSQL(paginationParams, 1);
+  const res = await db.query(
+    `SELECT COUNT(*)::int AS total FROM users ${whereClause}`,
+    values
+  );
   return res.rows[0].total;
 }
 
@@ -23,11 +31,10 @@ async function findById(id) {
      WHERE id = $1`,
     [id]
   );
-  return res.rows[0]; // Trả về 1 đối tượng duy nhất
+  return res.rows[0];
 }
 
 async function create(userData) {
-  // Đón nhận trường password_hash đã được Service băm bảo mật
   const { id, email, full_name, role, password_hash } = userData;
   
   const res = await db.query(
