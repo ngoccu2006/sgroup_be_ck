@@ -40,10 +40,41 @@ async function getAllClasses(req, res, next) {
   }
 }
 
+async function updateClass(req, res, next){
+  try{
+    const updatedClass = await classService.updateClass(req.params.id, req.body);
+    res.status(200).json({
+      message: 'Cập nhật lớp học thành công',
+      data: updatedClass
+    });
+  } catch(error){
+    if (error.statusCode === 400) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+}
+
+async function deleteClass(req, res, next){
+  try{
+    const deletedClass = await classService.deleteClass(req.params.id);
+    res.status(200).json({
+      message: 'Xóa lớp học thành công',
+      data: deletedClass
+    });
+  } catch(error){
+    if (error.statusCode === 400) {
+      return res.status(400).json({ message: error.message });
+    }
+    next(error);
+  }
+}
 
 const classController = {
   createClass,
-  getAllClasses
+  getAllClasses,
+  updateClass,
+  deleteClass
 }
 
 export default classController;

@@ -12,6 +12,23 @@ async function create(classData){
   return res.rows[0];
 }
 
+async function update(id, classData) {
+  const { name, description, start_date, end_date, mentor_id } = classData;
+  const res = await db.query(
+    `UPDATE classes
+    SET name = $1, description = $2, start_date = $3, end_date = $4, mentor_id = $5, updated_at = NOW()
+    WHERE id = $6
+    RETURNING id, name, description, start_date, end_date, mentor_id, created_at, updated_at`,
+    [name, description, start_date, end_date, mentor_id || null, id]
+  );
+  return res.rows[0];
+}
+
+async function deleteClass(id) {
+  const res = await db.query(`DELETE FROM classes WHERE id = $1 RETURNING *`, [id]);
+  return res.rows[0];
+}
+
 async function findAll(paginationParams) {
   const { whereClause, values, nextParamIndex } = buildClassFilterSQL(paginationParams, 1);
   const paginationSQL = buildPaginationSQL({
@@ -47,7 +64,9 @@ const classRepository = {
   create,
   findAll,
   countAll,
-  findById
+  findById,
+  update,
+  deleteClass
 };
 
 export default classRepository;
