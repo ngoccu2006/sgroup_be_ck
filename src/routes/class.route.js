@@ -12,4 +12,8 @@ router.post("/", authMiddleware.authenticate, authMiddleware.authorizeMentorOrAd
 // xem tien do hoc tap cua 1 member trong 1 class
 router.get("/:classId/progress", authMiddleware.authenticate, lessonProgressController.getClassProgress);
 
+router.put("/:id", authMiddleware.authenticate, authMiddleware.authorizeMentorOrAdmin, classController.updateClass);
+
+router.delete("/:id", authMiddleware.authenticate, authMiddleware.authorizeMentorOrAdmin, classController.deleteClass);
+
 export default router;

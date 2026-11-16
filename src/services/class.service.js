@@ -33,9 +33,27 @@ async function getAllClasses(paginationParams) {
   };
 }
 
+async function updateClass(id, classData){
+  const existingClass = await classRepository.findById(id);
+  if (!existingClass){
+    throw new Error(`Class not found with id: ${id}`);
+  }
+  return await classRepository.update(id, classData);
+}
+
+async function deleteClass(id){
+  const existingClass = await classRepository.findById(id);
+  if (!existingClass){
+    throw new Error(`Class not found with id: ${id}`);
+  }
+  return await classRepository.deleteClass(id);
+}
+
 const classService = {
   createClass,
-  getAllClasses
+  getAllClasses,
+  updateClass,
+  deleteClass
 }
 
 export default classService;
